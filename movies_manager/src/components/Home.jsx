@@ -1,15 +1,18 @@
 import { useEffect, useState, useRef } from "react";
-import { getFavourite, getMoviesComing, getMoviesInTheaters, getTopRatedIndia, getTopRatedMovies,
+import {
+    getFavourite, getMoviesComing, getMoviesInTheaters, getTopRatedIndia, getTopRatedMovies,
     putMoviesInTheaters, putMoviesComing,
     putTopRatedIndia, putTopRatedMovies
 } from "../service/moviesService";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import '../home.css';
 import MovieContent from "./MovieContent";
-let fetchData ;
+let fetchData;
 function Home() {
     const [moviesInTheaters, setMoviesInTheaters] = useState([]);
     const [moviesComing, setMoviesComing] = useState([]);
@@ -20,24 +23,23 @@ function Home() {
     const [selectedMenuItem, setSelectedMenuItem] = useState('');
     const [favouriteAdded, setFavouriteAdded] = useState(false);
     const effectRan = useRef(false);
-    
     const [showMobileNavLayout, setShowMobileNavLayout] = useState(false);
     fetchData = async () => {
-        
+
         try {
             const favourites = await getFavourite();
             setFavourites(favourites);
-            
+
             const favouriteIds = new Set(favourites.map(movie => movie.id));
 
-            const moviesComing = await getMoviesComing();                    
+            const moviesComing = await getMoviesComing();
             // Flag movies in the coming movies list, that exist in the favourite movies
             const flaggedMoviesComing = moviesComing.map(movie => ({
                 ...movie,
                 favourite: favouriteIds.has(movie.id),
             }));
             setMoviesComing(flaggedMoviesComing);
-            
+
 
             const moviesInTheaters = await getMoviesInTheaters();
             // Flag movies in the movies in theaters list , that exist in the favourite movies
@@ -61,10 +63,10 @@ function Home() {
                 ...movie,
                 favourite: favouriteIds.has(movie.id),
             }));
-            setTopRatedMovies(flaggedTopRatedMovies);      
-            
+            setTopRatedMovies(flaggedTopRatedMovies);
+
             //show Movies in Theaters after page loads
-            setMovies(moviesInTheaters)      
+            setMovies(moviesInTheaters)
 
             setSelectedMenuItem('movie_in_theaters');
         } catch (error) {
@@ -74,7 +76,7 @@ function Home() {
 
     useEffect(() => {
         if (effectRan.current === false) {
-            fetchData();            
+            fetchData();
             effectRan.current = true;
             if (window.innerWidth > 767) {
                 setShowMobileNavLayout(false);
@@ -103,7 +105,7 @@ function Home() {
     const menuClickHandler = (clickedMenuItem) => {
         setSelectedMenuItem(clickedMenuItem);
         if (clickedMenuItem == 'movie_in_theaters') {
-            setMovies(moviesInTheaters);            
+            setMovies(moviesInTheaters);
         } else if (clickedMenuItem == 'coming_soon') {
             setMovies(moviesComing);
         } else if (clickedMenuItem == 'top_rated_indian') {
@@ -156,59 +158,63 @@ function Home() {
     };
 
     useEffect(() => {
-        const fetchFavorites = async () =>{
+        const fetchFavorites = async () => {
             const favourites = await getFavourite();
-            setFavourites(favourites);  
+            setFavourites(favourites);
         }
-        fetchFavorites();        
+        fetchFavorites();
     }, [favouriteAdded]);
 
     const onAddingFavourite = (movie) => {
+        if (movie.favourite)
+            showToastAddFavourite();
         if (selectedMenuItem == 'movie_in_theaters') {
-            putMoviesInTheaters(movie); 
+            putMoviesInTheaters(movie);
             const updatedList = moviesInTheaters.map(item =>
                 item.id === movie.id ? { ...item, favourite: movie.favourite } : item
-              );
+            );
             setMoviesInTheaters(updatedList);
         } else if (selectedMenuItem == 'coming_soon') {
-            putMoviesComing(movie); 
+            putMoviesComing(movie);
             const updatedList = moviesComing.map(item =>
                 item.id === movie.id ? { ...item, favourite: movie.favourite } : item
-              );
+            );
             setMoviesComing(updatedList);
         } else if (selectedMenuItem == 'top_rated_indian') {
-            putTopRatedIndia(movie); 
+            putTopRatedIndia(movie);
             const updatedList = topRatedIndia.map(item =>
                 item.id === movie.id ? { ...item, favourite: movie.favourite } : item
-              );
+            );
             setTopRatedIndia(updatedList);
         } else if (selectedMenuItem == 'top_rated_movies') {
-            putTopRatedMovies(movie); 
+            putTopRatedMovies(movie);
             const updatedList = topRatedMovies.map(item =>
                 item.id === movie.id ? { ...item, favourite: movie.favourite } : item
-              );
+            );
             setTopRatedMovies(updatedList);
-        }        
+        }
         setFavouriteAdded((prev) => !prev);
     };
 
-   
+    const showToastAddFavourite = () => {
+        toast.success("Added selected movie to Favourites!");
+    };
     return (
         <>
             <div className="container-fluid" style={{ display: 'inline-table', width: '97vw' }}>
-                <Header menuClickHandler={menuClickHandler} 
+                <Header menuClickHandler={menuClickHandler}
                     searchMoviesHandler={searchMoviesHandler} />
-                {movies  && <MovieContent 
-                    movies={movies} 
-                    showMobileNavLayout={showMobileNavLayout} 
-                    showFavourite={selectedMenuItem != 'favourites' ? true : false} 
-                    handleFavourite={onAddingFavourite} 
-                    />
+                {movies && <MovieContent
+                    movies={movies}
+                    showMobileNavLayout={showMobileNavLayout}
+                    showFavourite={selectedMenuItem != 'favourites' ? true : false}
+                    handleFavourite={onAddingFavourite}
+                />
                 }
                 <hr />
                 <Footer />
+                <ToastContainer />
 
-                
             </div>
         </>
     );
