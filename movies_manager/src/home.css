@@ -1,0 +1,30 @@
+body {
+  padding-top: 40px;
+}
+
+.row-no-padding {
+  margin-left: 0;
+  margin-right: 0;
+
+  [class*="col-"] {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+}
+
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.row > div[class*='col-'] {
+ display: flex;
+}
+
+
+@media (max-width: 1000px) {
+  body {
+    padding-top: 50px;
+  }
+}
